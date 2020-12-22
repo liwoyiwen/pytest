@@ -11,6 +11,7 @@ if __name__=='__main__':
 
     #pytest.main(["-s",'./test/','./test2/'])
     pytest.main(["--html=report/reportname.html", './test/test_02.py'])
+    print("jjjjj")
     #pytest.main(["-s", './test/test_02.py'])
 
 
