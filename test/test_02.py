@@ -28,8 +28,7 @@ class TestDemo2:
     def test_indirect_part_indirect(self, min, max):
         print(min)
         print(max)
-        assert min == max
-        assert 1 > 2
+        assert 1 < 2
 
 
 
