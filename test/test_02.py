@@ -11,7 +11,7 @@ class TestDemo2:
         print(min)
         print(max)
         assert min <= max
-        assert 1>2
+        assert 1<2
 
     # min max 对应的实参重定向到同名的 fixture 中
 
