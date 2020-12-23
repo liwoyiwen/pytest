@@ -4,7 +4,7 @@ import uuid
 import base64
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_v1_5 as Cipher_pkcs1_v1_5
-from APIs.market import *
+from APIs.index import *
 
 
 @pytest.fixture(scope="session",autouse=True)
