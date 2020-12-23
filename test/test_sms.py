@@ -12,14 +12,14 @@ class TestSms:
         pass
 
 
-    @pytest.mark.parametrize("getShortUrl", [{"materialId": 465}], indirect=True)
-    def test_addPlan(self,getShortUrl,getheaders):
+
+    def test_addPlan(self,getShortUrl,getheaders,getMaterialId):
 
         print(getShortUrl)
         params={
             "name":getName("测试计划"),
             "startTime":getDate(),
-            "materialId":465,
+            "materialId":getMaterialId,
             "peoplePackageId":[1435],
             "putMoment":getTime2(17),
             "putScene":"PULL_NEW",
@@ -59,10 +59,10 @@ class TestSms:
         assert res.json()['status'] == 0
 
 
-    def test_04_MaterialDetail(self,getheaders):
+    def test_04_MaterialDetail(self,getheaders,getMaterialId):
         '''短信--素材详情'''
         url="http://test.shulanchina.cn"+"/api/market/material/queryDetail"
-        params=465
+        params=getMaterialId
         res = requests.get(url=url+"/"+str(params), headers=getheaders)
         assert res.status_code == 200
         assert res.json()['status'] == 0
