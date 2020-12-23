@@ -16,7 +16,7 @@ def info(getheaders):
     res=requests.get(
         url="http://test.shulanchina.cn/api/base/user/info",
         headers=getheaders)
-    print(res.json())
+
     yield res
 
 
@@ -27,6 +27,7 @@ def message(request, getheaders):
 
     res=requests.post(url="http://test.shulanchina.cn/api/base/message/list",
         headers=getheaders,json=request.param)
+
 
     yield res
 

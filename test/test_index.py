@@ -8,12 +8,12 @@ class TestIndex:
 
 
 
-    @pytest.mark.parametrize("message",{
+    @pytest.mark.parametrize("message",[{
             "pageNumber":1,
             "pageSize":20,
             "remainWay":"STRONG",
             "hasRead":"NO"
-        })
+        }],indirect=True)
     def test_message(self,message):
         res=message
         assert res.status_code == 200
