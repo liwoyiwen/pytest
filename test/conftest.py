@@ -5,7 +5,8 @@ import base64
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_v1_5 as Cipher_pkcs1_v1_5
 from APIs.index import *
-
+from APIs.sms import *
+import time
 
 @pytest.fixture(scope="session",autouse=True)
 def getheaders(login):
@@ -57,15 +58,6 @@ def login(request):
     token = res.json()['data']['token']
     yield token
 
-
-
 @pytest.fixture()
-def max(request,metadata):
-    print(metadata['url'])
-    return request.param - 1
-
-
-@pytest.fixture()
-def min(request,metadata):
-    print(metadata['username'])
-    return request.param + 1
+def getName(request):
+    return request.param+"_"+time.strftime('%Y-%m-%d_%H:%M:%S')
