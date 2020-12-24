@@ -34,15 +34,6 @@ def timeConvert(s):
     timeStamp = int(time.mktime(timeArray)*1000)
     print(timeStamp)
 
-def test():
-    params={
-        "name":"lijunfang"
-    }
-    params2={
-        "age":30
-    }
-    params.update(params2)
-    print(params)
 
 
 def getlen():

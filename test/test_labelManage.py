@@ -11,8 +11,7 @@ class TestLabelManage:
                     '5d5b499afbccb96a29581611',
                     '5d5b499afbccb96a2958160c',
                     '5d5b499afbccb96a2958160e',
-                    '5dcdfe1f3649f4a0f6f99b01'
-                    ]
+                    '5dcdfe1f3649f4a0f6f99b01']
 
 
 

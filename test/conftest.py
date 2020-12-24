@@ -1,12 +1,9 @@
-import pytest
-import requests
-import uuid
+
 import base64
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_v1_5 as Cipher_pkcs1_v1_5
-from APIs.index import *
 from APIs.sms import *
-import time
+
 
 @pytest.fixture(scope="session",autouse=True)
 def getheaders(login):
@@ -51,19 +48,12 @@ def login(request):
     url = 'http://test2.shulanchina.cn/api/base/user/login'
     rsa_password, rsa_cookie = getCipher(password)
     headers = {'Content-Type': 'application/json', "Cookie": rsa_cookie}
-    #headers = {'Content-Type': 'application/json'}
+
     params = {'accountName': username, 'password': rsa_password}
     res = requests.post(url=url, headers=headers, json=params)
     print(res.json())
     token = res.json()['data']['token']
     yield token
 
-@pytest.fixture()
-def getName(request):
-    return request.param+"_"+time.strftime('%Y-%m-%d_%H:%M:%S')
 
-@pytest.fixture()
-def getCategoryId(getheaders):
-    url = "http://test.shulanchina.cn/api/heart/memberLabel/getCategoryList"
-    res = requests.get(url=url, headers=getheaders)
-    yield [item['id'] for item in res.json()['data']]
+
