@@ -61,3 +61,9 @@ def login(request):
 @pytest.fixture()
 def getName(request):
     return request.param+"_"+time.strftime('%Y-%m-%d_%H:%M:%S')
+
+@pytest.fixture()
+def getCategoryId(getheaders):
+    url = "http://test.shulanchina.cn/api/heart/memberLabel/getCategoryList"
+    res = requests.get(url=url, headers=getheaders)
+    yield [item['id'] for item in res.json()['data']]
