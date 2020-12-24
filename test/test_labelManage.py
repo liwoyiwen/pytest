@@ -17,7 +17,7 @@ class TestLabelManage:
 
 
 
-    def test_01_getCategoryList(self,getheaders):
+    def test_getCategoryList(self,getheaders):
         url = "http://test.shulanchina.cn/api/heart/memberLabel/getCategoryList"
         res = requests.get(url=url, headers=getheaders)
         assert res.status_code == 200
@@ -29,7 +29,7 @@ class TestLabelManage:
 
 
     @pytest.mark.parametrize("categoryId",CategoryIdList)
-    def test_02_labelList(self,getheaders,categoryId):
+    def test_labelList(self,getheaders,categoryId):
 
         url="http://test.shulanchina.cn/api/heart/memberLabel/list"
         params={
