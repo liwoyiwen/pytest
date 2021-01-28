@@ -3,13 +3,13 @@ import pytest
 from common.utils import *
 
 @pytest.fixture()
-def getShortUrl(getMaterialId,getheaders):
-    res=requests.post(url="http://test.shulanchina.cn/api/market/plan/generateShortUrl",
-                      headers=getheaders,json={"materialId":getMaterialId})
+def getShortUrl(getMaterialId,get_envs):
+    res=requests.post(url=get_envs.get_baseUrl()+"/api/market/plan/generateShortUrl",
+                      headers=get_envs.get_headers(),json={"materialId":getMaterialId})
     yield res.json()["data"]
 
 @pytest.fixture()
-def getplanId(getheaders):
+def getplanId(get_envs):
 
     params = {
         "name":None,
@@ -25,12 +25,12 @@ def getplanId(getheaders):
     }
 
 
-    res = requests.post(url="http://test.shulanchina.cn/api/market/plan/list", headers=getheaders, json=params)
+    res = requests.post(url=get_envs.get_baseUrl()+"/api/market/plan/list", headers=get_envs.get_headers(), json=params)
     yield res.json()["data"]["data"][0]['id']
 
 
 @pytest.fixture()
-def getMaterialId(getheaders):
+def getMaterialId(get_envs):
     params = {
         "gmtStartDate": None,
         "gmtEndDate": None,
@@ -41,5 +41,5 @@ def getMaterialId(getheaders):
         "pageSize": 10
     }
 
-    res = requests.post(url="http://test.shulanchina.cn/api/market/material/list", headers=getheaders, json=params)
+    res = requests.post(url=get_envs.get_baseUrl()+"/api/market/material/list", headers=get_envs.get_headers(), json=params)
     yield res.json()["data"]["data"][0]['id']

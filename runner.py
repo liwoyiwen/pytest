@@ -10,9 +10,9 @@ if __name__=='__main__':
     #pytest.main(['-s','-q','--alluredir','./report/xml', 'test_01.py'])
 
     #pytest.main(["-s",'./test/','./test2/'])
-    pytest.main(["--html=report/reportname.html", './test/'])
+    #pytest.main(["--html=report/reportname.html", "--env=test",'./test/'])
 
-    #pytest.main(["-s",'-q', './test/test_labelManage.py'])
+    pytest.main(["--html=report/reportname.html",'./test/'])
 
 
 
