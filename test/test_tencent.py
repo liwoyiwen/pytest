@@ -8,32 +8,29 @@ import time as t
 from common.mysql_engine import *
 from test.myInit import *
 
+
 class TestTencent(MyInit):
-
     datas = get_excel(filename='dsp_data.xls', sheetName="ad_data", converters={"materialName": getName})
-    search_advert_datas=get_excel(filename='dsp_data.xls', sheetName="search_advert",converters={
-        "sql":lambda x: x.strip().replace('%', '%%')
+    search_advert_datas = get_excel(filename='dsp_data.xls', sheetName="search_advert", converters={
+        "sql": lambda x: x.strip().replace('%', '%%')
     })
 
-    search_adMaterial_datas=get_excel(filename='dsp_data.xls', sheetName="search_adMaterial",converters={
-        "sql":lambda x: x.strip().replace('%', '%%')
+    search_adMaterial_datas = get_excel(filename='dsp_data.xls', sheetName="search_adMaterial", converters={
+        "sql": lambda x: x.strip().replace('%', '%%')
     })
 
-    search_popularizePage_datas=get_excel(filename="dsp_data.xls",sheetName="search_popularizePage",converters={
-        "sql":lambda x: x.strip().replace('%', '%%'),
-        "startDate": lambda x:datetime.strftime(x,"%Y-%m-%d %H:%M:%S") if x!='' else '',
-        "endDate":lambda x:datetime.strftime(x,"%Y-%m-%d %H:%M:%S") if x!='' else ''
+    search_popularizePage_datas = get_excel(filename="dsp_data.xls", sheetName="search_popularizePage", converters={
+        "sql": lambda x: x.strip().replace('%', '%%'),
+        "startDate": lambda x: datetime.strftime(x, "%Y-%m-%d %H:%M:%S") if x != '' else '',
+        "endDate": lambda x: datetime.strftime(x, "%Y-%m-%d %H:%M:%S") if x != '' else ''
 
     })
 
-
-
-
-
-    @pytest.mark.parametrize("value",datas)
-    def test_addAd(self,value):
+    @pytest.mark.skip("skip")
+    @pytest.mark.parametrize("value", datas)
+    def test_addAd(self, value):
         print(value)
-        advert_params={
+        advert_params = {
             "shopId": TestTencent.shopId,
             "putMedia": value['putMedia'],
             "paymentType": value['paymentType'],
@@ -59,8 +56,9 @@ class TestTencent(MyInit):
             "miniLink": value['miniLink']
         }
 
-        print(json.dumps(advert_params,indent=4))
-        res = requests.post(url=self.baseUrl+"/api/market/advertMerge/saveAdvert",headers=self.headers, json=advert_params)
+        print(json.dumps(advert_params, indent=4))
+        res = requests.post(url=self.baseUrl + "/api/market/advertMerge/saveAdvert", headers=self.headers,
+                            json=advert_params)
         print("**************************")
         print(res.json())
 
@@ -68,7 +66,6 @@ class TestTencent(MyInit):
         advertGroupId = res.json()['data']['advertGroupId']
         advertId = res.json()['data']['advertId']
         assert res.json()['status'] == 0
-
 
         material_params = {
             "materialName": value['materialName'],
@@ -99,13 +96,13 @@ class TestTencent(MyInit):
         }
         print(material_params)
 
-        res1=requests.post(url=self.baseUrl+"/api/market/wechatAdverMaterial/addMaterial",headers=self.headers,json=material_params)
-        assert res1.json()['status']==0
+        res1 = requests.post(url=self.baseUrl + "/api/market/wechatAdverMaterial/addMaterial", headers=self.headers,
+                             json=material_params)
+        assert res1.json()['status'] == 0
         print(res1.json())
 
-
         t.sleep(30)
-        advert_id=int(str(advertId)[1:])
+        advert_id = int(str(advertId)[1:])
         sql = "select tencent_material_id from wechat_material where advert_id=%d" % advert_id
         print(get_sql(sql, market))
         tencent_material_id = get_sql(sql, market)[0]['tencent_material_id']
@@ -113,38 +110,36 @@ class TestTencent(MyInit):
         assert tencent_material_id != None
         t.sleep(3)
 
-    @pytest.mark.skip('skip')
-    @pytest.mark.parametrize("value",search_advert_datas)
-    def test_search_advert(self,value):
-        print(json.dumps(value,indent=4))
+    @pytest.mark.parametrize("value", search_advert_datas)
+    def test_search_advert(self, value):
+        print(json.dumps(value, indent=4))
 
-        params={
-            "shopId":value['shopId'],
-            "putState":value['putState'],
-            "putChannel":value['putChannel'],
-            "advertName":value['advertName'],
-            "ascRule":value['ascRule'],
-            "sortField":value['sortField']
+        params = {
+            "shopId": value['shopId'],
+            "putState": value['putState'],
+            "putChannel": value['putChannel'],
+            "advertName": value['advertName'],
+            "ascRule": value['ascRule'],
+            "sortField": value['sortField']
 
         }
-        success=value['success']
+        success = value['success']
 
-        res=requests.post(url=self.baseUrl+"/api/market/advertMerge/advertList",
-                          headers=self.headers,
-                          json=params)
+        res = requests.post(url=self.baseUrl + "/api/market/advertMerge/advertList",
+                            headers=self.headers,
+                            json=params)
 
-        print(json.dumps(res.json(),indent=4))
+        print(json.dumps(res.json(), indent=4))
 
-        real_totalCount=get_sql(value['sql'],market)[0]['total']
+        real_totalCount = get_sql(value['sql'], market)[0]['total']
         assert res.status_code == 200
         assert res.json()['success'] == success
-        assert res.json()['data']['totalCount']==real_totalCount
+        assert res.json()['data']['totalCount'] == real_totalCount
 
-    @pytest.mark.skip('skip')
-    @pytest.mark.parametrize("value",search_adMaterial_datas)
-    def test_search_material(self,value):
-        print(json.dumps(value,indent=4))
-        params={
+    @pytest.mark.parametrize("value", search_adMaterial_datas)
+    def test_search_material(self, value):
+        print(json.dumps(value, indent=4))
+        params = {
             "shopId": value['shopId'],
             "shulanPutInStatus": value['shulanPutInStatus'],
             "putChannel": value['putChannel'],
@@ -154,24 +149,23 @@ class TestTencent(MyInit):
             "pageSize": 10
 
         }
-        print(json.dumps(params,indent=4))
-        success=value['success']
+        print(json.dumps(params, indent=4))
+        success = value['success']
 
-        res=requests.post(url=self.baseUrl+"/api/market/advertMaterial/selectMaterial",
-                          headers=self.headers,
-                          json=params)
+        res = requests.post(url=self.baseUrl + "/api/market/advertMaterial/selectMaterial",
+                            headers=self.headers,
+                            json=params)
 
-        print(json.dumps(res.json(),indent=4))
+        print(json.dumps(res.json(), indent=4))
 
-        real_totalCount=get_sql(value['sql'],market)[0]['total']
+        real_totalCount = get_sql(value['sql'], market)[0]['total']
         assert res.status_code == 200
         assert res.json()['success'] == success
-        assert res.json()['data']['totalCount']==real_totalCount
+        assert res.json()['data']['totalCount'] == real_totalCount
 
-    @pytest.mark.skip('skip')
-    @pytest.mark.parametrize('value',search_popularizePage_datas)
+    @pytest.mark.parametrize('value', search_popularizePage_datas)
     def test_search_popularizePage(self, value):
-        print(json.dumps(value,indent=4))
+        print(json.dumps(value, indent=4))
 
         params = {
             "shopId": value['shopId'],
@@ -187,7 +181,7 @@ class TestTencent(MyInit):
         print(json.dumps(params, indent=4))
         success = value['success']
 
-        res = requests.post(url=self.baseUrl+"/api/market/advertMerge/popularizePage",
+        res = requests.post(url=self.baseUrl + "/api/market/advertMerge/popularizePage",
                             headers=self.headers,
                             json=params)
 
