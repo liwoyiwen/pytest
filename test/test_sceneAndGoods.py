@@ -257,6 +257,5 @@ class TestScenePeopleTest(MyInit):
         if value['putState'] == 0:
             assert advert['launch_people'] == str(peoplePackage['id'])
 
-
         elif value['putState'] == 1:
             assert str(peoplePackage['id']) in advert['launch_people']
