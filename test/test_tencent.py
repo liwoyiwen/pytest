@@ -4,22 +4,21 @@ import pytest
 import requests
 from common.read_data import *
 import time as t
-
 from common.mysql_engine import *
 from test.myInit import *
 
 
 class TestTencent(MyInit):
-    datas = get_excel(filename='dsp_data.xls', sheetName="ad_data", converters={"materialName": getName})
-    search_advert_datas = get_excel(filename='dsp_data.xls', sheetName="search_advert", converters={
+    ad_data = get_excel(filename='dsp_data.xls', sheetName="ad_data", converters={"materialName": getName})
+    search_advert_data = get_excel(filename='dsp_data.xls', sheetName="search_advert", converters={
         "sql": lambda x: x.strip().replace('%', '%%')
     })
 
-    search_adMaterial_datas = get_excel(filename='dsp_data.xls', sheetName="search_adMaterial", converters={
+    search_adMaterial_data = get_excel(filename='dsp_data.xls', sheetName="search_adMaterial", converters={
         "sql": lambda x: x.strip().replace('%', '%%')
     })
 
-    search_popularizePage_datas = get_excel(filename="dsp_data.xls", sheetName="search_popularizePage", converters={
+    search_popularizePage_data = get_excel(filename="dsp_data.xls", sheetName="search_popularizePage", converters={
         "sql": lambda x: x.strip().replace('%', '%%'),
         "startDate": lambda x: datetime.strftime(x, "%Y-%m-%d %H:%M:%S") if x != '' else '',
         "endDate": lambda x: datetime.strftime(x, "%Y-%m-%d %H:%M:%S") if x != '' else ''
@@ -27,11 +26,11 @@ class TestTencent(MyInit):
     })
 
     @pytest.mark.skip("skip")
-    @pytest.mark.parametrize("value", datas)
-    def test_addAd(self, value):
+    @pytest.mark.parametrize("value", ad_data)
+    def test_add_advert(self, value):
         print(value)
         advert_params = {
-            "shopId": TestTencent.shopId,
+            "shopId": self.shopId,
             "putMedia": value['putMedia'],
             "paymentType": value['paymentType'],
             "advertSpace": str(value['advertSpace']),
@@ -42,14 +41,19 @@ class TestTencent(MyInit):
             "launchMode": value['launchMode'],
             "launchStartTime": getDate1(3),
             "launchEndTime": None,
-            "launchTimeInterval": "111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "launchTimeInterval": "11111111111111111111111111111111111111111111111111111111"
+                                  "111111111111111111111111111111111111111111111111111111111"
+                                  "1111111111111111111111111111111111111111111111111111111"
+                                  "11111111111111111111111111111111111111111111111111111111111111"
+                                  "111111111111111111111111111111111111111111111111111111111111111111"
+                                  "1111111111111111111111111111111111111111",
             "launchTimeInfo": "不限",
             "directUrl": None,
             "totalAdvertBudget": "500",
             "singlePrice": "50",
             "advertName": getName("ljf-2"),
             "optimizeTarget": value['optimizeTarget'],
-            "skpiType": value['skpiType'],
+            "skipType": value['skipType'],
             "popularizeId": value['popularizeId'],
             "fallUrl": value['fallUrl'],
             "miniId": value['miniId'],
@@ -63,7 +67,7 @@ class TestTencent(MyInit):
         print(res.json())
 
         print("**************************")
-        advertGroupId = res.json()['data']['advertGroupId']
+        advert_groupId = res.json()['data']['advertGroupId']
         advertId = res.json()['data']['advertId']
         assert res.json()['status'] == 0
 
@@ -85,7 +89,7 @@ class TestTencent(MyInit):
             "brandName": "222",
             "brandUrl": "https://test-oss.shulanchina.cn/imageAndVideo/20201012/1602489174860_53.jpg",
             "pixel": value['pixel'],
-            "advertGroupId": advertGroupId,
+            "advertGroupId": advert_groupId,
             "advertId": advertId,
             "shopId": self.shopId,
             "payType": value['payType'],
@@ -107,10 +111,10 @@ class TestTencent(MyInit):
         print(get_sql(sql, market))
         tencent_material_id = get_sql(sql, market)[0]['tencent_material_id']
 
-        assert tencent_material_id != None
+        assert tencent_material_id is not None
         t.sleep(3)
 
-    @pytest.mark.parametrize("value", search_advert_datas)
+    @pytest.mark.parametrize("value", search_advert_data)
     def test_search_advert(self, value):
         print(json.dumps(value, indent=4))
 
@@ -131,12 +135,12 @@ class TestTencent(MyInit):
 
         print(json.dumps(res.json(), indent=4))
 
-        real_totalCount = get_sql(value['sql'], market)[0]['total']
+        real_total_count = get_sql(value['sql'], market)[0]['total']
         assert res.status_code == 200
         assert res.json()['success'] == success
-        assert res.json()['data']['totalCount'] == real_totalCount
+        assert res.json()['data']['totalCount'] == real_total_count
 
-    @pytest.mark.parametrize("value", search_adMaterial_datas)
+    @pytest.mark.parametrize("value", search_adMaterial_data)
     def test_search_material(self, value):
         print(json.dumps(value, indent=4))
         params = {
@@ -158,12 +162,12 @@ class TestTencent(MyInit):
 
         print(json.dumps(res.json(), indent=4))
 
-        real_totalCount = get_sql(value['sql'], market)[0]['total']
+        real_total_count = get_sql(value['sql'], market)[0]['total']
         assert res.status_code == 200
         assert res.json()['success'] == success
-        assert res.json()['data']['totalCount'] == real_totalCount
+        assert res.json()['data']['totalCount'] == real_total_count
 
-    @pytest.mark.parametrize('value', search_popularizePage_datas)
+    @pytest.mark.parametrize('value', search_popularizePage_data)
     def test_search_popularizePage(self, value):
         print(json.dumps(value, indent=4))
 
@@ -187,7 +191,7 @@ class TestTencent(MyInit):
 
         print(json.dumps(res.json(), indent=4))
 
-        real_totalCount = get_sql(value['sql'], market)[0]['total']
+        real_total_count = get_sql(value['sql'], market)[0]['total']
         assert res.status_code == 200
         assert res.json()['success'] == success
-        assert res.json()['data']['totalCount'] == real_totalCount
+        assert res.json()['data']['totalCount'] == real_total_count

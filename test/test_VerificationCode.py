@@ -6,16 +6,16 @@ from test.myInit import *
 
 
 class TestVerificationCode(MyInit):
-    datas = get_excel(filename='login_data.xls', sheetName="Verification_code", dtype={"mobile": str})
+    code_data = get_excel(filename='login_data.xls', sheetName="Verification_code", dtype={"mobile": str})
 
-    @pytest.mark.parametrize("value", datas)
+    @pytest.mark.parametrize("value", code_data)
     def test_send(self, value):
+        url = self.baseUrl + "/api/base/user/getVerification"
         param = {
             "mobile": value['mobile']
         }
         msg = value['msg']
         success = value['success']
-        url = self.baseUrl + "/api/base/user/getVerification"
         res = requests.post(url=url, headers=self.headers, params=param)
         logging.error(res.json())
         print(res.json())

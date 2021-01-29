@@ -6,16 +6,16 @@ from common.read_data import *
 
 
 class TestPopManage(MyInit):
-    search_peoplePackage_datas = get_excel(filename='peoplePackage_data.xls', sheetName='search_peoplePackage',
-                                           converters={
-                                               "beginDate": lambda x: datetime.strftime(x,
-                                                                                        "%Y-%m-%d %H:%M:%S") if x != '' else '',
-                                               "endDate": lambda x: datetime.strftime(x,
-                                                                                      "%Y-%m-%d %H:%M:%S") if x != '' else '',
-                                               'sql': lambda x: x.strip().replace('%', '%%')
-                                           })
+    search_peoplePackage_data = get_excel(filename='peoplePackage_data.xls', sheetName='search_peoplePackage',
+                                          converters={
+                                              "beginDate": lambda x: datetime.strftime(x,
+                                                                                       "%Y-%m-%d %H:%M:%S") if x != '' else '',
+                                              "endDate": lambda x: datetime.strftime(x,
+                                                                                     "%Y-%m-%d %H:%M:%S") if x != '' else '',
+                                              'sql': lambda x: x.strip().replace('%', '%%')
+                                          })
 
-    peoplePackage_portait_datas = get_excel(filename='peoplePackage_data.xls', sheetName='peoplepackage_portait')
+    peoplePackage_portait_data = get_excel(filename='peoplePackage_data.xls', sheetName='peoplepackage_portait')
 
     '''
     
@@ -45,7 +45,7 @@ class TestPopManage(MyInit):
     
     '''
 
-    @pytest.mark.parametrize('value', search_peoplePackage_datas)
+    @pytest.mark.parametrize('value', search_peoplePackage_data)
     def test_searchPeoplePackage(self, value):
         print(json.dumps(value, indent=4))
         params = {
@@ -58,12 +58,12 @@ class TestPopManage(MyInit):
         success = value['success']
         res = requests.post(url=self.baseUrl + "/api/market/peoplePackage/queryList", json=params, headers=self.headers)
         print(res.json())
-        real_totalCount = get_sql(value['sql'], market)[0]['total']
+        real_total_count = get_sql(value['sql'], market)[0]['total']
         assert res.status_code == 200
         assert res.json()['success'] == success
-        assert res.json()['data']['totalCount'] == real_totalCount
+        assert res.json()['data']['totalCount'] == real_total_count
 
-    @pytest.mark.parametrize('value', peoplePackage_portait_datas)
+    @pytest.mark.parametrize('value', peoplePackage_portait_data)
     def test_peoplePortrait(self, value):
         url = self.baseUrl + "/api/heart/crowdPackage/getCrowdPackagePortray"
         sql = value['crowdPackageId']

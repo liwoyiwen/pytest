@@ -3,29 +3,27 @@ import requests
 import pytest
 from test.myInit import *
 import json
-class TestPopPortraitCase(MyInit):
 
-    generateCrowdPackage_datas=[]
+
+class TestPopPortraitCase(MyInit):
+    generateCrowdPackage_data = []
 
     def test_memberOverview(self):
-        '''人群画像'''
-
-
-        url=self.baseUrl+"/api/heart/member/overview"
-        params={
-            "shopId":None,
-            "labels":["性别：男性","性别：未知"],
-            "rangeLabelReqs":[],
-            "shopIds":[]
+        url = self.baseUrl + "/api/heart/member/overview"
+        params = {
+            "shopId": None,
+            "labels": ["性别：男性", "性别：未知"],
+            "rangeLabelReqs": [],
+            "shopIds": []
         }
 
         res = requests.post(url=url, headers=self.headers, json=params)
-        assert res.status_code==200
-        assert res.json()["status"]==0
+        assert res.status_code == 200
+        assert res.json()["status"] == 0
 
-    @pytest.mark.parametrize('value', generateCrowdPackage_datas)
+    @pytest.mark.parametrize('value', generateCrowdPackage_data)
     def test_generateCrowdPackage(self, value):
-        url =self.baseUrl+ "/api/heart/crowdPackage/generateCrowdPackage"
+        url = self.baseUrl + "/api/heart/crowdPackage/generateCrowdPackage"
 
         params = {
             "shopId": value['shopId'],
@@ -42,4 +40,3 @@ class TestPopPortraitCase(MyInit):
         print(res.json())
         assert res.status_code == 200
         assert res.json()['success'] == success
-

@@ -1,15 +1,15 @@
 from common.read_data import *
 import pytest
 import requests
-from test.conftest import getCipher
+from test.conftest import get_cipher
 from test.myInit import MyInit
 
 
 class TestLogin(MyInit):
-    datas = get_excel(filename="login_data.xls", sheetName="login_data", converters={"password": getCipher},
+    login_data = get_excel(filename="login_data.xls", sheetName="login_data", converters={"password": get_cipher},
                       dtype={"accountName": str})
 
-    @pytest.mark.parametrize("value", datas)
+    @pytest.mark.parametrize("value",login_data)
     def test_login(self, value):
 
         Expectation = value['Expectation']
