@@ -37,5 +37,31 @@ class TestIndex(MyInit):
         assert res.status_code == 200
         assert res.json()['status'] == 0
 
-    def test_01(self):
-        print(self.headers)
+
+    def test_advert_list(self):
+        url=self.baseUrl+"/api/market/advertMerge/advert"
+        res=requests.post(url=url,headers=self.headers)
+        assert res.status_code == 200
+        assert res.json()['status'] == 0
+
+    def test_smslog_list(self):
+        url=self.baseUrl+"/api/market/smslog/list"
+        params={
+            "startDate":None,
+            "endDate":None,
+            "planName":None,
+            "type":None,
+            "shopId":0,
+            "timeRange":"RECENTLY_THIRTY_DAY",
+            "pageSize":5,
+            "pageNum":1
+        }
+        res = requests.post(url=url, headers=self.headers,json=params)
+        assert res.status_code == 200
+        assert res.json()['status'] == 0
+
+    def test_front_list(self):
+        url=self.baseUrl+"/api/analysis/front/list"
+        res = requests.post(url=url, headers=self.headers)
+        assert res.status_code == 200
+        assert res.json()['status'] == 0

@@ -1,9 +1,8 @@
 # -*- coding: UTF-8 -*-
 import pytest
-import requests
-from common.read_data import *
 from test.myInit import *
 from datetime import datetime, timedelta
+from common.es_connection import *
 
 
 class TestScenePeopleTest(MyInit):
@@ -27,14 +26,12 @@ class TestScenePeopleTest(MyInit):
 
     })
 
-    @pytest.mark.skip("skip")
     def test_getScene(self):
         url = self.baseUrl + "/api/analysis/label/getSceneCrowd"
         res = requests.post(url=url, headers=self.headers)
         assert res.status_code == 200
         assert res.json()["status"] == 0
 
-    @pytest.mark.skip("skip")
     def test_overviewByGoods(self):
         url = self.baseUrl + "/api/heart/member/overviewByGoods"
         res = requests.post(url=url, headers=self.headers, json=[])
@@ -56,7 +53,6 @@ class TestScenePeopleTest(MyInit):
         assert res.status_code == 200
         assert res.json()["status"] == 0
 
-    @pytest.mark.skip("skip")
     @pytest.mark.parametrize("value", platformOverview_data)
     def test_platformOverview(self, value):
         print(value)
@@ -102,14 +98,12 @@ class TestScenePeopleTest(MyInit):
         assert res.status_code == 200
         assert res.json()['success'] == success
 
-    @pytest.mark.skip("skip")
     def test_flowPackageRemain(self):
         url = self.baseUrl + "/api/base/pay/flowPackageRemain"
         res = requests.post(url=url, headers=self.headers)
         assert res.status_code == 200
         assert res.json()["status"] == 0
 
-    @pytest.mark.skip("skip")
     @pytest.mark.parametrize('value', generateSceneAndTradePeoplePack_data)
     def test_generateSceneAndTradePeoplePackage(self, value):
         url = self.baseUrl + "/api/analysis/peoplePackage/getEstimateNumber"
@@ -152,16 +146,17 @@ class TestScenePeopleTest(MyInit):
         assert res.status_code == 200
         assert res.json()['success'] == success
         assert res.json()['data']['id'] is not None
-        peopackage_id = res.json()['data']['id']
+        package_id = res.json()['data']['id']
 
         time.sleep(200)
-        result = get_sql("select data_count, build_status from people_package where id=%d" % (peopackage_id), market)
-        assert result[0]['data_count'] == data_count
-        assert result[0]['build_status'] == 0
+        detail_num, count, status = get_people_package_detail(package_id)
+        assert detail_num > 0, "验证es 人群详情"
+        assert detail_num == count, "人群数量"
+        assert status == 0, "人群状态"
 
         url_packagePortray = self.baseUrl + "/api/heart/crowdPackage/getCrowdPackagePortray"
         params_packagePortray = {
-            "crowdPackageId": peopackage_id
+            "crowdPackageId": package_id
         }
 
         res = requests.get(url=url_packagePortray, params=params_packagePortray, headers=self.headers)
@@ -169,7 +164,6 @@ class TestScenePeopleTest(MyInit):
         assert res.json()['success'] == True
         assert res.json()['data']['overview']['memberCount'] == data_count
 
-    @pytest.mark.skip("skip")
     def test_estimateCostByCount(self):
         url = self.baseUrl + "/api/market/plan/estimateCostByCount"
         params = {
@@ -259,3 +253,13 @@ class TestScenePeopleTest(MyInit):
 
         elif value['putState'] == 1:
             assert str(peoplePackage['id']) in advert['launch_people']
+
+    def test_relationshipOfCityAndProvince(self):
+        url = self.baseUrl + "/api/heart/memberLabel/relationshipOfCityAndProvince"
+        params = {
+            "province": "福建"
+
+        }
+        res = requests.get(url=url, params=params, headers=self.headers)
+        assert res.status_code == 200
+        assert res.json()["status"] == 0

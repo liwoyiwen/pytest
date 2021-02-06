@@ -17,7 +17,7 @@ class TestSmsMaterial(MyInit):
     add_plan_datas = get_excel(filename='sms_data.xls', sheetName="add_plan", converters={
         "name": lambda x: getName(x) if x != '' else '',
         'startTime': lambda x: datetime.strftime(datetime.now(), "%Y-%m-%d" if x != '' else ''),
-        'putMoment': lambda x: datetime.strftime(datetime.now() + timedelta(minutes=20), "%H:%M") if x != '' else '', })
+        'putMoment': lambda x: datetime.strftime(datetime.now() + timedelta(hours=1), "%H:%M") if x != '' else '', })
 
     search_plan_datas = get_excel(filename='sms_data.xls', sheetName='search_plan', converters={
         'startDate': lambda x: datetime.strftime(x, "%Y-%m-%d %H:%M:%S") if x != '' else '',
@@ -50,7 +50,7 @@ class TestSmsMaterial(MyInit):
 
         msg = value['msg']
         success = value['success']
-        url = self.baseUrl + 'http://test.shulanchina.cn/api/market/material/add'
+        url = self.baseUrl + '/api/market/material/add'
         res = requests.post(url=url, headers=self.headers, json=params)
         print(res.json())
         assert res.status_code == 200

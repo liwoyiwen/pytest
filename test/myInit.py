@@ -7,6 +7,11 @@ from common.read_data import *
 
 class MyInit:
 
+
+
+
+
+
     def setup_class(self):
         envs = os.environ.get("--env")
         print(envs)
@@ -16,8 +21,10 @@ class MyInit:
         self.launchPeople = read_config.get_conf('launchPeople')
         self.peoplePackageName = read_config.get_conf('peoplePackageName')
         self.peoplePackageNumber = read_config.get_conf('peoplePackageNumber')
+        self.user_id= read_config.get_conf('user_id')
         self.headers = read_config.get_headers()
         self.baseUrl = read_config.get_baseUrl()
+
 
     def get_shortUrl(self, materialId):
         read_config = Read_config("test")

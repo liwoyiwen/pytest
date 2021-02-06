@@ -3,6 +3,9 @@ import requests
 import pytest
 from test.myInit import MyInit
 from common.read_data import *
+import os
+
+from common.es_connection import *
 
 
 class TestPopManage(MyInit):
@@ -79,3 +82,28 @@ class TestPopManage(MyInit):
         assert res.json()['success'] == success
         assert people_dict['build_status'] == 0
         assert res.json()['data']['overview']['memberCount'] == people_dict['data_count']
+
+    def test_import_crowdPackage(self):
+        url = self.baseUrl + "/api/market/peoplePackage/importCrowdPackage"
+        new_name = "../files/" + "outImport_" + datetime.strftime(datetime.now(), "%Y-%m-%d_%H-%M-%S") + ".csv"
+        os.rename("../files/test.csv", new_name)
+
+        with open(new_name, "rb") as f:
+            files = {
+                "file": f
+            }
+            header = {
+                "token": self.headers['token']
+            }
+
+            res = requests.post(url=url, headers=header, files=files)
+        os.rename(new_name, "../files/test.csv")
+        print(res.json())
+        assert res.status_code == 200
+        assert res.json()['status'] == 0
+        package_id = res.json()['data']
+        time.sleep(10)
+        detail_num, count, status = get_people_package_detail(package_id)
+        assert detail_num >= 0, "验证es 人群详情"
+        assert detail_num == count, "人群数量"
+        assert status == 0, "人群状态"

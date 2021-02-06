@@ -7,7 +7,7 @@ import time as t
 from common.mysql_engine import *
 from test.myInit import *
 
-
+@pytest.mark.skip('tiaoguo')
 class TestTencent(MyInit):
     ad_data = get_excel(filename='dsp_data.xls', sheetName="ad_data", converters={"materialName": getName})
     search_advert_data = get_excel(filename='dsp_data.xls', sheetName="search_advert", converters={
@@ -25,7 +25,7 @@ class TestTencent(MyInit):
 
     })
 
-    @pytest.mark.skip("skip")
+
     @pytest.mark.parametrize("value", ad_data)
     def test_add_advert(self, value):
         print(value)
@@ -74,7 +74,7 @@ class TestTencent(MyInit):
         material_params = {
             "materialName": value['materialName'],
             "materialStyle": value['materialStyle'],
-            "skipStyle": value['skpiType'],
+            "skipStyle": value['skipType'],
             "wechatPopularizePageId": value['popularizeId'],
             "imageVideoUrl": value['imageVideoUrl'],
             "skipAdvertisingCopyName": value['skipAdvertisingCopyName'],

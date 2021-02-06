@@ -4,7 +4,7 @@ import requests
 from test.conftest import get_cipher
 from test.myInit import MyInit
 
-
+@pytest.mark.skip('不执行')
 class TestLogin(MyInit):
     login_data = get_excel(filename="login_data.xls", sheetName="login_data", converters={"password": get_cipher},
                       dtype={"accountName": str})
