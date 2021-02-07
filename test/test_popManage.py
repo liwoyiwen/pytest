@@ -2,8 +2,8 @@
 import requests
 import pytest
 from test.myInit import MyInit
-from common.read_data import *
-import os
+from datetime import datetime
+import json
 
 from common.es_connection import *
 

@@ -2,10 +2,10 @@ from test.myInit import MyInit
 import requests
 from common.kafka_connection import *
 from kafka.errors import kafka_errors
-from common.read_data import *
+from common.utils import *
 from common.es_connection import *
 import pytest
-
+import json
 
 class TestSmartCrowdPackage(MyInit):
     def test_getSmartCrowdPackage(self):
@@ -19,12 +19,8 @@ class TestSmartCrowdPackage(MyInit):
             "reference": "人群画像一键投放"
         }
         res = requests.post(url=url, headers=self.headers, json=params)
-        assert res.status_code == 200
-        assert res.json()['status'] == 0
         time.sleep(5)
-        package_id = get_sql("select * from people_package where name='%s'" % (params['peoplePackageName']), market)[0][
-            'id']
-        assert package_id is not None
+        package_id = get_people_package(params['peoplePackageName'])['id']
 
         try:
             dict3 = {
@@ -50,10 +46,7 @@ class TestSmartCrowdPackage(MyInit):
 
         time.sleep(40)
 
-        detail_num, count, status = get_people_package_detail(package_id)
-        assert detail_num > 0, "验证es 人群详情"
-        assert detail_num == count, "人群数量"
-        assert status == 0, "人群状态"
+        assert_people_package_detail(package_id)
 
     @pytest.mark.parametrize("value", [0, 1])
     def test_getShopOrPeoplePackage(self, value):

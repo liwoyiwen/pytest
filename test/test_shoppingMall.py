@@ -1,10 +1,10 @@
 from test.myInit import MyInit
 import requests
-from common.read_data import *
 from decimal import Decimal
 import pytest
 from enums.myEnum import *
 from datetime import timedelta, datetime
+from common.mysql_engine import *
 
 
 class TestShoppingMall(MyInit):
@@ -14,8 +14,7 @@ class TestShoppingMall(MyInit):
         assert res.status_code == 200
         assert res.json()['status'] == 0
         print(res.json()['data']['balance'])
-        assert res.json()['data']['balance'] == \
-               get_sql(f"select balance from user where id={self.user_id}", base)[0]["balance"]
+        assert res.json()['data']['balance'] == get_user(self.user_id)['balance']
 
     def test_wallet_consumption(self):
         url = self.baseUrl + "/api/base/user/walletDetailList"
@@ -27,16 +26,14 @@ class TestShoppingMall(MyInit):
         res = requests.post(url=url, headers=self.headers, json=params)
         assert res.status_code == 200
         assert res.json()['status'] == 0
-        assert res.json()['data']['totalCount'] == get_sql(
-            f"select count(id) as total from wallet_detail where user_id={self.user_id} ORDER BY create_time desc", base)[0]['total']
+        assert res.json()['data']['totalCount'] == len(get_wallet_consumption(self.user_id))
 
     def test_sms_remaining(self):
         url = self.baseUrl + "/api/base/tradeRecords/selectResidue"
         res = requests.post(url=url, headers=self.headers)
         assert res.status_code == 200
         assert res.json()['status'] == 0
-        assert res.json()['data'][0]['total'] == get_sql(
-            f"select sum(amount+gifts) as sms_remaining from user_sms_remaining where user_id={self.user_id}", base)[0]['sms_remaining']
+        assert res.json()['data'][0]['total'] == get_sms_remaining(self.user_id)
 
     def test_sms_consumption(self):
         url = self.baseUrl + "/api/base/fundLog/queryConsumptionRecords"
@@ -48,8 +45,7 @@ class TestShoppingMall(MyInit):
         res = requests.post(url=url, headers=self.headers, json=params)
         assert res.status_code == 200
         assert res.json()['status'] == 0
-        assert res.json()['data']['totalCount'] == get_sql(
-            f"select count(consumption_id) as total from (select consumption_id, operate_time, sum(pre_pay_sms_num) 预计消费, sum(sms_amount) 实际消费 from fund_consumption_log where user_id={self.user_id} GROUP BY consumption_id  ORDER BY operate_time desc) as a", base)[0]['total']
+        assert res.json()['data']['totalCount'] == len(get_sms_consumption(self.user_id))
 
     def test_portraitUpgrade_remaining(self):
         url = self.baseUrl + "/api/base/portraitUpgrade/userAccount"
@@ -69,30 +65,23 @@ class TestShoppingMall(MyInit):
             elif item["start"] == 50000 and item["end"] == 100000:
                 big = + item["totalRemaining"]
 
-        assert small == get_sql(
-            f"select total_remaining from user_calculated_quantity where (start=2000 and end=20000)  and user_id={self.user_id}", base)[0]["total_remaining"]
-        assert middle == get_sql(
-            f"select total_remaining from user_calculated_quantity where start=20000 and end=50000 and user_id={self.user_id}", base)[0]["total_remaining"]
-
-        assert big == get_sql(
-            f"select total_remaining from user_calculated_quantity where start=50000 and end=100000 and user_id={self.user_id}", base)[0]["total_remaining"]
+        assert small == get_portraitUpgrade_remaining(self.user_id, 200, 2000) + get_portraitUpgrade_remaining(self.user_id, 2000, 20000)
+        assert middle == get_portraitUpgrade_remaining(self.user_id, 20000, 50000)
+        assert big == get_portraitUpgrade_remaining(self.user_id, 50000, 100000)
 
     def test_portraitUpgrade_consumption(self):
         url = self.baseUrl + "/api/base/portraitUpgrade/calculateHistory?pageNumber=1&pageSize=10"
         res = requests.post(url=url, headers=self.headers)
         assert res.status_code == 200
         assert res.json()['status'] == 0
-        assert res.json()['data']['total'] == get_sql(
-            f"select count(id) as total from user_consumer_record where user_child_id={self.user_id} and feature_id=0", base)[0]["total"]
+        assert res.json()['data']['total'] == len(get_portraitUpgrade_consumption(self.user_id))
 
     def test_app_remaining(self):
         url = self.baseUrl + "/api/base/appCircle/findNumber"
         res = requests.post(url=url, headers=self.headers)
         assert res.status_code == 200
         assert res.json()['status'] == 0
-        assert res.json()['data'] == \
-               get_sql(f"select * from app_sms_remaining where user_id={self.user_id}", base)[0][
-                   'total_remaining']
+        assert res.json()['data'] == get_app_remaining(self.user_id)
 
     def test_app_consumption(self):
         url = self.baseUrl + "/api/base/appCircle/findDetail"
@@ -104,20 +93,16 @@ class TestShoppingMall(MyInit):
         res = requests.post(url=url, headers=self.headers, json=params)
         assert res.status_code == 200
         assert res.json()['status'] == 0
-        assert res.json()['data']['total'] == get_sql(
-            f"select count(id) as total from user_consumer_record where user_child_id={self.user_id} and feature_id=2", base)[0][
-            'total']
+        assert res.json()['data']['total'] == len(get_app_consumption(self.user_id))
 
-    def test_flowPackage_remaining(self):
+    def test_flow_package_remaining(self):
         url = self.baseUrl + "/api/base/pay/flowPackageRemain"
         res = requests.post(url=url, headers=self.headers)
         assert res.status_code == 200
         assert res.json()['status'] == 0
-        assert res.json()['data'] == \
-               get_sql(f"select * from flow_package_remaining where user_id={self.user_id}", base)[0][
-                   'total_remain']
+        assert res.json()['data'] ==get_flow_package_remaining(self.user_id)
 
-    def test_flowPack_consumption(self):
+    def test_flow_package_consumption(self):
         url = self.baseUrl + "/api/base/pay/flowPackageDetails"
         params = {
             "pageNumber": 1,
@@ -126,8 +111,7 @@ class TestShoppingMall(MyInit):
         res = requests.post(url=url, headers=self.headers, params=params)
         assert res.status_code == 200
         assert res.json()['status'] == 0
-        assert res.json()['data']['totalCount'] == get_sql(
-            f"select count(id) as total from user_consumer_record where user_child_id={self.user_id} and feature_id in (8,9,11)", base)[0]['total']
+        assert res.json()['data']['totalCount'] == len(get_flow_package_consumption(self.user_id))
 
     def test_getAdvertiserFund(self):
         url = self.baseUrl + "/api/base/dsp/getAdvertiserFund"
@@ -148,7 +132,7 @@ class TestShoppingMall(MyInit):
 
     # @pytest.mark.parametrize("featureId", [None, 0, 2, 3, 4, 12])
     # @pytest.mark.parametrize("paymentChannel", [None, 0, 2, 4, 5, 6, 7, 8])
-
+    @pytest.mark.skip('skip')
     @pytest.mark.parametrize("featureId", [None,
                                            Feature.portraitUpgrade.value,
                                            Feature.appCircle.value,
@@ -164,8 +148,7 @@ class TestShoppingMall(MyInit):
                                                 PaymentChannel.person_charge.value,
                                                 PaymentChannel.person_refund.value])
     @pytest.mark.parametrize("paymentStatus", [None, 'RECHARGE_SUCCESS', 'RECHARGE_FAILURE', 'RECHARGE_ING', 'REFUND'])
-    @pytest.mark.parametrize("startDate",
-                             [None, datetime.strftime(datetime.now() - timedelta(days=30), '%Y-%m-%d %H:%M:%S')])
+    @pytest.mark.parametrize("startDate",[None, datetime.strftime(datetime.now() - timedelta(days=30), '%Y-%m-%d %H:%M:%S')])
     @pytest.mark.parametrize("endDate", [None, datetime.strftime(datetime.now(), '%Y-%m-%d %H:%M:%S')])
     def test_purchase_order(self, featureId, paymentChannel, paymentStatus, startDate, endDate):
         url = self.baseUrl + "/api/base/portraitUpgrade/purchaseQuantityHistory"
@@ -207,8 +190,8 @@ class TestShoppingMall(MyInit):
 
     def test_purchase_sms(self):
         url = self.baseUrl + "/api/base/basePay/total"
-        balance_before = get_sql(f"select balance from user where id={self.user_id}", base)[0]["balance"]
-        sms_before = get_sql(f"select sum(amount+gifts) as sms_remaining from user_sms_remaining where user_id={self.user_id}", base)[0]['sms_remaining']
+        balance_before = get_user(self.user_id)['balance']
+        sms_before = get_sms_remaining(self.user_id)
         params = {
             "button": True,
             "featureId": 3,
@@ -223,16 +206,14 @@ class TestShoppingMall(MyInit):
         res = requests.post(url=url, headers=self.headers, json=params)
         assert res.status_code == 200
         assert res.json()['status'] == 0
-        balance_after = get_sql(f"select balance from user where id={self.user_id}", base)[0]["balance"]
-        sms_after = get_sql(f"select sum(amount+gifts) as sms_remaining from user_sms_remaining where user_id={self.user_id}", base)[0]['sms_remaining']
-
+        balance_after = get_user(self.user_id)['balance']
+        sms_after = get_sms_remaining(self.user_id)
         assert Decimal(str(balance_before)) - Decimal(str(balance_after)) == Decimal(str(params['payAmount']))
-
         assert sms_after - sms_before == 10000
 
     def test_purchase_portraitUpgrade(self):
         url = self.baseUrl + "/api/base/basePay/total"
-        balance_before = get_sql(f"select balance from user where id={self.user_id}", base)[0]["balance"]
+        balance_before = get_user(self.user_id)['balance']
 
         params = {
             "button": True,
@@ -245,23 +226,22 @@ class TestShoppingMall(MyInit):
                     "payPassword": "user11"
                 }
         }
-        package = get_sql(f"select * from price_list where id={params['payRequest']['priceListId']}", base)[0]
-        total_remaining_before = get_sql(
-            f"select * from user_calculated_quantity where user_id={self.user_id} and start={package['start']} and end={package['end']}", base)[0]['total_remaining']
+        package = get_price(params['payRequest']['priceListId'])
+
+        total_remaining_before = get_portraitUpgrade_remaining(self.user_id, package['start'], package['end'])
 
         res = requests.post(url=url, headers=self.headers, json=params)
         assert res.status_code == 200
         assert res.json()['status'] == 0
-        balance_after = get_sql(f"select balance from user where id={self.user_id}", base)[0]["balance"]
-        total_remaining_after = get_sql(
-            f"select * from user_calculated_quantity where user_id={self.user_id} and start={package['start']} and end={package['end']}", base)[0]['total_remaining']
+        balance_after = get_user(self.user_id)['balance']
+        total_remaining_after = get_portraitUpgrade_remaining(self.user_id, package['start'], package['end'])
 
         assert total_remaining_after - total_remaining_before == 1, "画像升级包新增失败"
         assert Decimal(str(balance_before)) - Decimal(str(balance_after)) == Decimal(str(params['payAmount'])), "余额扣减失败"
 
     def test_purchase_appCirle(self):
         url = self.baseUrl + "/api/base/basePay/total"
-        balance_before = get_sql(f"select balance from user where id={self.user_id}", base)[0]["balance"]
+        balance_before = get_user(self.user_id)['balance']
         params = {
             "button": True,
             "featureId": 2,
@@ -274,22 +254,21 @@ class TestShoppingMall(MyInit):
                 }
         }
 
-        package = get_sql(f"select * from price_list where id={params['payRequest']['priceListId']}", base)[0]
-        total_remaining_before = get_sql(f"select * from app_sms_remaining where user_id={self.user_id}", base)[0][
-            "total_remaining"]
+        package = get_price(params['payRequest']['priceListId'])
+        total_remaining_before = get_app_remaining(self.user_id)
 
         res = requests.post(url=url, headers=self.headers, json=params)
         assert res.status_code == 200
         assert res.json()['status'] == 0
-        balance_after = get_sql(f"select balance from user where id={self.user_id}", base)[0]["balance"]
-        total_remaining_after = get_sql(f"select * from app_sms_remaining where user_id={self.user_id}", base)[0][
-            "total_remaining"]
+
+        balance_after = get_user(self.user_id)['balance']
+        total_remaining_after = get_app_remaining(self.user_id)
         assert total_remaining_after - total_remaining_before == package['number'], "app新增失败"
         assert Decimal(str(balance_before)) - Decimal(str(balance_after)) == Decimal(str(params['payAmount'])), "余额扣减失败"
 
     def test_purchase_flowPackage(self):
         url = self.baseUrl + "/api/base/basePay/total"
-        balance_before = get_sql(f"select balance from user where id={self.user_id}", base)[0]["balance"]
+        balance_before = get_user(self.user_id)['balance']
         params = {
             "button": True,
             "featureId": 12,
@@ -302,15 +281,12 @@ class TestShoppingMall(MyInit):
                 }
         }
 
-        package = get_sql(f"select * from price_list where id={params['payRequest']['priceListId']}", base)[0]
-        total_remaining_before = get_sql(f"select * from flow_package_remaining where user_id={self.user_id}", base)[0][
-            "total_remain"]
-
+        package = get_price(params['payRequest']['priceListId'])
+        total_remaining_before = get_flow_package_remaining(self.user_id)
         res = requests.post(url=url, headers=self.headers, json=params)
         assert res.status_code == 200
         assert res.json()['status'] == 0
-        balance_after = get_sql(f"select balance from user where id={self.user_id}", base)[0]["balance"]
-        total_remaining_after = get_sql(f"select * from flow_package_remaining where user_id={self.user_id}", base)[0][
-            "total_remain"]
+        balance_after = get_user(self.user_id)['balance']
+        total_remaining_after = get_flow_package_remaining(self.user_id)
         assert total_remaining_after - total_remaining_before == package['number'], "精准流量包新增失败"
         assert Decimal(str(balance_before)) - Decimal(str(balance_after)) == Decimal(str(params['payAmount']))

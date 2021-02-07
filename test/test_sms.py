@@ -1,43 +1,40 @@
 # -*-coding:utf-8-*-
-
-from common.read_data import *
 import pytest
-import requests
-from conf.config import *
 from datetime import datetime
 from datetime import timedelta
-from common.mysql_engine import *
+from common.utils import *
+import json
 from test.myInit import *
 
 
-class TestSmsMaterial(MyInit):
-    add_material_datas = get_excel(filename='sms_data.xls', sheetName="add_material", converters={
+class TestSms(MyInit):
+    add_material_data = get_excel(filename='sms_data.xls', sheetName="add_material", converters={
         "name": lambda x: getName(x) if x != '' else ''})
 
-    add_plan_datas = get_excel(filename='sms_data.xls', sheetName="add_plan", converters={
+    add_plan_data = get_excel(filename='sms_data.xls', sheetName="add_plan", converters={
         "name": lambda x: getName(x) if x != '' else '',
         'startTime': lambda x: datetime.strftime(datetime.now(), "%Y-%m-%d" if x != '' else ''),
         'putMoment': lambda x: datetime.strftime(datetime.now() + timedelta(hours=1), "%H:%M") if x != '' else '', })
 
-    search_plan_datas = get_excel(filename='sms_data.xls', sheetName='search_plan', converters={
+    search_plan_data = get_excel(filename='sms_data.xls', sheetName='search_plan', converters={
         'startDate': lambda x: datetime.strftime(x, "%Y-%m-%d %H:%M:%S") if x != '' else '',
         'endDate': lambda x: datetime.strftime(x, "%Y-%m-%d %H:%M:%S") if x != '' else '',
         'sql': lambda x: x.replace('%', '%%')})
 
-    search_material_datas = get_excel(filename='sms_data.xls', sheetName='search_material', converters={
+    search_material_data = get_excel(filename='sms_data.xls', sheetName='search_material', converters={
         "gmtStartDate": lambda x: datetime.strftime(x, "%Y-%m-%d %H:%M:%S") if x != '' else '',
         "gmtEndDate": lambda x: datetime.strftime(x, "%Y-%m-%d %H:%M:%S") if x != '' else '',
         'sql': lambda x: x.strip().replace('%', '%%')
     })
 
-    search_operation_datas = get_excel(filename='sms_data.xls', sheetName='search_operation', converters={
+    search_operation_data = get_excel(filename='sms_data.xls', sheetName='search_operation', converters={
         "startDate": lambda x: datetime.strftime(x, "%Y-%m-%d") if x != '' else '',
         "endDate": lambda x: datetime.strftime(x, "%Y-%m-%d") if x != '' else '',
         'sql': lambda x: x.strip().replace('%', '%%')
     })
 
-    @pytest.mark.parametrize("value", add_material_datas)
-    def test_addMaterial(self, value):
+    @pytest.mark.parametrize("value", add_material_data)
+    def test_add_material(self, value):
         print(json.dumps(value, indent=4))
         params = {
             "content": value['content'],
@@ -58,26 +55,22 @@ class TestSmsMaterial(MyInit):
         if msg != '':
             assert res.json()['msg'] == msg
 
-    @pytest.mark.parametrize("value", add_plan_datas)
-    def test_addPlan(self, value):
-        shortUrl = ''
+    @pytest.mark.parametrize("value", add_plan_data)
+    def test_add_plan(self, value):
+        short_url = ''
         if value['materialId'] != '':
-            try:
+            res1 = requests.post(url=self.baseUrl + "/api/market/plan/generateShortUrl",
+                                 json={'materialId': value['materialId']},
+                                 headers=self.headers)
 
-                res1 = requests.post(url=self.baseUrl + "/api/market/plan/generateShortUrl",
-                                     json={'materialId': value['materialId']},
-                                     headers=self.headers)
-
-                shortUrl = res1.json()['data']
-            except:
-                print('shortURL')
+            short_url = res1.json()['data']
 
         params = {
             "materialId": value['materialId'],
             "name": value['name'],
             "peoplePackageId": ast.literal_eval(value['peoplePackageId']) if value['peoplePackageId'] != '' else [],
             "putScene": value['putScene'],
-            "shortUrl": shortUrl,
+            "shortUrl": short_url,
             "startTime": value['startTime'],
             "putMoment": value['putMoment']
         }
@@ -91,8 +84,18 @@ class TestSmsMaterial(MyInit):
         if msg != '':
             assert res.json()['msg'] == msg
 
-    @pytest.mark.parametrize('value', search_plan_datas)
-    def test_searchPlan(self, value):
+        if success:
+            plan_id = get_plan(params['name'])['id']
+            self.assert_plan_detail(plan_id)
+
+    def assert_plan_detail(self, plan_id):
+        url = self.baseUrl + "/api/market/plan/detail" + "/" + plan_id
+        res = requests.get(url=url, headers=self.headers)
+        assert res.status_code == 200
+        assert res.json()['success'] is True
+
+    @pytest.mark.parametrize('value', search_plan_data)
+    def test_search_plan(self, value):
         print(json.dumps(value, indent=4))
 
         params = {
@@ -112,13 +115,13 @@ class TestSmsMaterial(MyInit):
 
         print(res.json())
 
-        real_totalCount = get_sql(value['sql'], market)[0]['total']
+        total_count = get_sql(value['sql'], market)[0]['total']
         assert res.status_code == 200
         assert res.json()['success'] == success
-        assert res.json()['data']['totalCount'] == real_totalCount
+        assert res.json()['data']['totalCount'] == total_count
 
-    @pytest.mark.parametrize('value', search_material_datas)
-    def test_searchMaterial(self, value):
+    @pytest.mark.parametrize('value', search_material_data)
+    def test_search_material(self, value):
         print(json.dumps(value, indent=4))
         params = {
             "shopId": value['shopId'],
@@ -135,13 +138,13 @@ class TestSmsMaterial(MyInit):
 
         print(res.json())
 
-        real_totalCount = get_sql(value['sql'], market)[0]['total']
+        total_count = get_sql(value['sql'], market)[0]['total']
         assert res.status_code == 200
         assert res.json()['success'] == success
-        assert res.json()['data']['totalCount'] == real_totalCount
+        assert res.json()['data']['totalCount'] == total_count
 
-    @pytest.mark.parametrize('value', search_operation_datas)
-    def test_seatchOperation(self, value):
+    @pytest.mark.parametrize('value', search_operation_data)
+    def test_search_operation(self, value):
         print(json.dumps(value, indent=4))
         params = {
             "shopId": value['shopId'],
@@ -158,7 +161,7 @@ class TestSmsMaterial(MyInit):
 
         print(res.json())
 
-        real_totalCount = get_sql(value['sql'], market)[0]['total']
+        total_count = get_sql(value['sql'], market)[0]['total']
         assert res.status_code == 200
         assert res.json()['success'] == success
-        assert res.json()['data']['totalCount'] == real_totalCount
+        assert res.json()['data']['totalCount'] == total_count

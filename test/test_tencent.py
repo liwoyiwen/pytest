@@ -2,11 +2,11 @@
 
 import pytest
 import requests
-from common.read_data import *
+from datetime import datetime,timedelta
 import time as t
-from common.mysql_engine import *
 from test.myInit import *
-
+from common.utils import *
+import json
 @pytest.mark.skip('tiaoguo')
 class TestTencent(MyInit):
     ad_data = get_excel(filename='dsp_data.xls', sheetName="ad_data", converters={"materialName": getName})
@@ -39,7 +39,7 @@ class TestTencent(MyInit):
             "peoplePackageName": self.peoplePackageNumber,
             "peoplePackageNumber": self.peoplePackageNumber,
             "launchMode": value['launchMode'],
-            "launchStartTime": getDate1(3),
+            "launchStartTime": datetime.strftime(datetime.now()+timedelta(days=3),"%Y-%m-%d"),
             "launchEndTime": None,
             "launchTimeInterval": "11111111111111111111111111111111111111111111111111111111"
                                   "111111111111111111111111111111111111111111111111111111111"

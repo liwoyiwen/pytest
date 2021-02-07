@@ -3,6 +3,9 @@ import pytest
 from test.myInit import *
 from datetime import datetime, timedelta
 from common.es_connection import *
+import json
+from common.mysql_engine import *
+from common.utils import *
 
 
 class TestScenePeopleTest(MyInit):
@@ -118,12 +121,12 @@ class TestScenePeopleTest(MyInit):
         print(res.json())
         assert res.status_code == 200
         assert res.json()["status"] == 0
-        estimateNumber = res.json()["data"]["number"]
+        estimate_number = res.json()["data"]["number"]
 
-        if estimateNumber >= value["dataCount"]:
+        if estimate_number >= value["dataCount"]:
             data_count = value["dataCount"]
         else:
-            data_count = estimateNumber
+            data_count = estimate_number
 
         url = self.baseUrl + "/api/market/peoplePackage/generateSceneAndTradePeoplePackage"
         params = {
@@ -132,7 +135,7 @@ class TestScenePeopleTest(MyInit):
             "scenePeopleLabel": ast.literal_eval(value['scenePeopleLabel']),
             "categoryLabel": ast.literal_eval(value['categoryLabel']),
             "peopleLabel": ast.literal_eval(value['peopleLabel']),
-            "estimateNumber": estimateNumber,
+            "estimateNumber": estimate_number,
             "name": value['name'],
             "dataCount": data_count,
             "requestParam": value['requestParam']
@@ -149,10 +152,7 @@ class TestScenePeopleTest(MyInit):
         package_id = res.json()['data']['id']
 
         time.sleep(200)
-        detail_num, count, status = get_people_package_detail(package_id)
-        assert detail_num > 0, "验证es 人群详情"
-        assert detail_num == count, "人群数量"
-        assert status == 0, "人群状态"
+        assert_people_package_detail(package_id)
 
         url_packagePortray = self.baseUrl + "/api/heart/crowdPackage/getCrowdPackagePortray"
         params_packagePortray = {
@@ -204,13 +204,11 @@ class TestScenePeopleTest(MyInit):
         assert res.json()["status"] == 0
         time.sleep(180)
 
-        plan = get_sql("select * from plan where name='%s'" % value["planName"], market)[0]
-        print(plan)
+        plan = get_plan(params['planName'])
         assert plan is not None
 
-        peoplePackage = get_sql("select * from people_package where name='%s'" % value["name"], market)[0]
-        assert peoplePackage['id'] is not None
-        assert peoplePackage['build_status'] == 0
+        package_id = get_people_package(params['name'])['id']
+        assert_people_package_detail(package_id)
 
     @pytest.mark.parametrize("value", oneKeyPut_ad)
     def test_oneKeyPut1(self, value):
@@ -238,21 +236,23 @@ class TestScenePeopleTest(MyInit):
         assert res.json()["status"] == 0
         time.sleep(180)
 
-        peoplePackage = get_sql("select * from people_package where name='%s'" % value["name"], market)[0]
-        assert peoplePackage['id'] is not None
-        assert peoplePackage['build_status'] == 0
+        package_id = get_people_package(params['name'])['id']
+        assert_people_package_detail(package_id)
 
         if value["putChannel"] == 1:
-            advert = get_sql("select * from wechat_advert where id=%d" % int(str(value["advertId"])[1:]), market)[0]
+            advert = get_wechat_advert(params['advertId'])
 
         elif value["putChannel"] == 2:
-            advert = get_sql("select * from dsp_advert where id='%d'" % int(str(value["advertId"])[1:]), market)[0]
+            advert = get_dsp_advert(params['advertId'])
 
         if value['putState'] == 0:
-            assert advert['launch_people'] == str(peoplePackage['id'])
+            assert advert['launch_people'] == str(package_id)
 
         elif value['putState'] == 1:
-            assert str(peoplePackage['id']) in advert['launch_people']
+            assert str(package_id) in advert['launch_people']
+
+
+
 
     def test_relationshipOfCityAndProvince(self):
         url = self.baseUrl + "/api/heart/memberLabel/relationshipOfCityAndProvince"
