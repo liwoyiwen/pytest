@@ -10,4 +10,4 @@ if __name__ == '__main__':
     #pytest.main(["--html=report/reportname.html", './test/test_sceneAndGoods.py','-n=1'])
     os.environ['--env']='test'
     #pytest.main(["-s", './test/test_appCircle.py', '-n=1'])
-    pytest.main(["--html=report/reportname.html", "--env=test", './test/test_appCircle.py'])
+    pytest.main(["--html=report/reportname.html", "--env=test", './test/'])

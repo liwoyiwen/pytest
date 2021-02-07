@@ -19,6 +19,8 @@ class TestSmartCrowdPackage(MyInit):
             "reference": "人群画像一键投放"
         }
         res = requests.post(url=url, headers=self.headers, json=params)
+        assert res.status_code == 200
+        assert res.json()['status'] == 0
         time.sleep(5)
         package_id = get_people_package(params['peoplePackageName'])['id']
 

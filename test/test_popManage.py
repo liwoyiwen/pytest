@@ -49,7 +49,7 @@ class TestPopManage(MyInit):
     '''
 
     @pytest.mark.parametrize('value', search_peoplePackage_data)
-    def test_searchPeoplePackage(self, value):
+    def test_search_peoplePackage(self, value):
         print(json.dumps(value, indent=4))
         params = {
             "name": value['name'],
@@ -67,7 +67,7 @@ class TestPopManage(MyInit):
         assert res.json()['data']['totalCount'] == real_total_count
 
     @pytest.mark.parametrize('value', peoplePackage_portait_data)
-    def test_peoplePortrait(self, value):
+    def test_people_portrait(self, value):
         url = self.baseUrl + "/api/heart/crowdPackage/getCrowdPackagePortray"
         sql = value['crowdPackageId']
         people_dict = get_sql(sql, market)[0]

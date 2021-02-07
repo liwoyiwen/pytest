@@ -5,8 +5,8 @@ from datetime import datetime, timedelta
 from common.es_connection import *
 import json
 from common.mysql_engine import *
-from common.utils import *
-
+from common.utils import getName
+import time
 
 class TestScenePeopleTest(MyInit):
     generateSceneAndTradePeoplePack_data = get_excel(filename='sceneAndGoods_data.xls',

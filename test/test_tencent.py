@@ -5,7 +5,7 @@ import requests
 from datetime import datetime,timedelta
 import time as t
 from test.myInit import *
-from common.utils import *
+from common.utils import getName
 import json
 @pytest.mark.skip('tiaoguo')
 class TestTencent(MyInit):
