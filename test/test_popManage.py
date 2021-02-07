@@ -6,7 +6,7 @@ from datetime import datetime
 import json
 
 from common.es_connection import *
-
+import time
 
 class TestPopManage(MyInit):
     search_peoplePackage_data = get_excel(filename='peoplePackage_data.xls', sheetName='search_peoplePackage',
@@ -102,8 +102,6 @@ class TestPopManage(MyInit):
         assert res.status_code == 200
         assert res.json()['status'] == 0
         package_id = res.json()['data']
+
         time.sleep(10)
-        detail_num, count, status = get_people_package_detail(package_id)
-        assert detail_num >= 0, "验证es 人群详情"
-        assert detail_num == count, "人群数量"
-        assert status == 0, "人群状态"
+        assert_people_package_detail(package_id)

@@ -34,7 +34,7 @@ def get_cipher(password):
     return password, cookie
 
 
-@pytest.fixture(scope="session", autouse=False)
+@pytest.fixture(scope="session", autouse=True)
 def login(get_envs):
     os.environ['--env'] = get_envs
     read_config = Read_config(get_envs)

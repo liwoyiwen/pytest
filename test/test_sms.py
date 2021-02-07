@@ -2,7 +2,7 @@
 import pytest
 from datetime import datetime
 from datetime import timedelta
-from common.utils import *
+from common.utils import getName
 import json
 from test.myInit import *
 
@@ -89,7 +89,7 @@ class TestSms(MyInit):
             self.assert_plan_detail(plan_id)
 
     def assert_plan_detail(self, plan_id):
-        url = self.baseUrl + "/api/market/plan/detail" + "/" + plan_id
+        url = self.baseUrl + "/api/market/plan/detail" + "/" + str(plan_id)
         res = requests.get(url=url, headers=self.headers)
         assert res.status_code == 200
         assert res.json()['success'] is True
