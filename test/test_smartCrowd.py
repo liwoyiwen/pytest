@@ -7,8 +7,10 @@ from common.es_connection import *
 import pytest
 import json
 
+
 class TestSmartCrowdPackage(MyInit):
     def test_getSmartCrowdPackage(self):
+        """发起智能圈人包"""
         url = self.baseUrl + "/api/market/smartPeople/getSmartCrowdPackage"
         params = {
             "referenceSource": 1,
@@ -25,23 +27,23 @@ class TestSmartCrowdPackage(MyInit):
         package_id = get_people_package(params['peoplePackageName'])['id']
 
         try:
-            dict3 = {
+            dict1 = {
                 "package_id": package_id,
                 "member_id": ["e0991e03e8e8627d5db7b0e9a6e9eb73", "f3b68100491caf5952254753b05e1b47"],
                 "error_type": "",
                 "over": "false"
             }
 
-            producer.send("crowd_expand_result", json.dumps(dict3).encode())
+            producer.send("crowd_expand_result", json.dumps(dict1).encode())
 
-            dict3 = {
+            dict2 = {
                 "package_id": package_id,
                 "member_id": ["e0992e03e8e8627d5db7b0e9a6e9eb73", "d3b68100491caf5952254753b05e1b47"],
                 "error_type": "",
                 "over": "true"
             }
 
-            producer.send("crowd_expand_result", json.dumps(dict3).encode())
+            producer.send("crowd_expand_result", json.dumps(dict2).encode())
 
         except kafka_errors as e:
             print(e)
@@ -52,6 +54,7 @@ class TestSmartCrowdPackage(MyInit):
 
     @pytest.mark.parametrize("value", [0, 1])
     def test_getShopOrPeoplePackage(self, value):
+        """获取智能圈人包店铺列表和人群包列表"""
         url = self.baseUrl + "/api/analysis/smartPeople/getShopOrPeoplePackage"
         params = {
             "type": value
@@ -61,6 +64,7 @@ class TestSmartCrowdPackage(MyInit):
         assert res.json()['status'] == 0
 
     def test_customerAcquisitionHistory(self):
+        """获取智能圈人历史记录"""
         url = self.baseUrl + "/api/analysis/smartPeople/customerAcquisitionHistory"
         params = {
             "pageNumber": 1,

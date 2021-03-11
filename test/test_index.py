@@ -1,50 +1,21 @@
 import requests
 from test.myInit import MyInit
-
+import json
 
 class TestIndex(MyInit):
-
-    def test_info(self):
-        res = requests.get(
-            url=self.baseUrl + "/api/base/user/info",
-            headers=self.headers)
-        assert res.status_code == 200
-        assert res.json()['status'] == 0
-
-    def test_message(self):
-        params = {
-            "pageNumber": 1,
-            "pageSize": 20,
-            "remainWay": "STRONG",
-            "hasRead": "NO"
-        }
-        res = requests.post(url=self.baseUrl + "/api/base/message/list",
-                            headers=self.headers, json=params)
-        assert res.status_code == 200
-        assert res.json()['status'] == 0
-
-    def test_judgeAllHasRead(self):
-        res = requests.get(
-            url=self.baseUrl + "/api/base/message/judgeAllHasRead",
-            headers=self.headers)
-        assert res.status_code == 200
-        assert res.json()['status'] == 0
-
-    def test_shopList(self):
-        res = requests.get(
-            url=self.baseUrl + "/api/base/shop/list",
-            headers=self.headers)
-        assert res.status_code == 200
-        assert res.json()['status'] == 0
+    """首页"""
 
 
     def test_advert_list(self):
+        """广告投放列表"""
         url=self.baseUrl+"/api/market/advertMerge/advert"
         res=requests.post(url=url,headers=self.headers)
+        print(json.dumps(res.json(),indent=4))
         assert res.status_code == 200
         assert res.json()['status'] == 0
 
     def test_smslog_list(self):
+        """短信投放列表"""
         url=self.baseUrl+"/api/market/smslog/list"
         params={
             "startDate":None,
@@ -61,7 +32,11 @@ class TestIndex(MyInit):
         assert res.json()['status'] == 0
 
     def test_front_list(self):
+        """店铺动态"""
         url=self.baseUrl+"/api/analysis/front/list"
         res = requests.post(url=url, headers=self.headers)
         assert res.status_code == 200
         assert res.json()['status'] == 0
+
+if __name__=='__main__':
+    pytest.main(['-s','test_index.py'])

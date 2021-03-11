@@ -6,13 +6,16 @@ from common.es_connection import *
 from datetime import datetime
 
 class TestAppCircle(MyInit):
+
     def test_app_list(self):
+        """获取app列表"""
         url = self.baseUrl + "/api/market/appCrowdPack/app/list"
         res = requests.post(url=url, headers=self.headers)
         assert res.status_code == 200
         assert res.json()['status'] == 0
 
     def test_demand_list(self):
+        """获取app 圈人工单列表"""
         url = self.baseUrl + "/api/market/appCrowdPack/queryDemandList"
         params = {
             "startTime": None,
@@ -28,6 +31,7 @@ class TestAppCircle(MyInit):
         assert res.json()['status'] == 0
 
     def test_add_demand(self):
+        """生成app圈人工单"""
         url = self.baseUrl + "/api/market/appCrowdPack/addDemand"
         params = {
             "appName": "中外云仓",

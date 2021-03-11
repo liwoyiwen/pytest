@@ -5,7 +5,7 @@ import requests
 import json
 from conf.config import *
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope='session',autouse=True)
 def get_token():
     params = {
         "timestamp": int(time.time()),
@@ -20,9 +20,9 @@ def get_token():
     res = requests.get(params=params, url="https://api.e.qq.com/oauth/token")
     print(res.json())
     access_token=res.json()['data']['access_token']
-    read_config=Read_config("tecent")
+    #read_config=Read_config("tecent")
 
-    read_config.set_conf("access_token",access_token)
+    #read_config.set_conf("access_token",access_token)
 
 
 

@@ -7,6 +7,8 @@ import json
 from common.mysql_engine import *
 from common.utils import getName
 import time
+import ast
+
 
 class TestScenePeopleTest(MyInit):
     generateSceneAndTradePeoplePack_data = get_excel(filename='sceneAndGoods_data.xls',
@@ -30,6 +32,7 @@ class TestScenePeopleTest(MyInit):
     })
 
     def test_getScene(self):
+        """获取场景"""
         url = self.baseUrl + "/api/analysis/label/getSceneCrowd"
         res = requests.post(url=url, headers=self.headers)
         assert res.status_code == 200
@@ -43,6 +46,7 @@ class TestScenePeopleTest(MyInit):
         assert res.json()["status"] == 0
 
     def test_getEstimateNumber(self):
+        """获取当前预估人数"""
         url = self.baseUrl + "/api/analysis/peoplePackage/getEstimateNumber"
         params = {
             "repeated": 0,
@@ -58,6 +62,7 @@ class TestScenePeopleTest(MyInit):
 
     @pytest.mark.parametrize("value", platformOverview_data)
     def test_platformOverview(self, value):
+        """基础画像概览"""
         print(value)
         url = self.baseUrl + "/api/heart/member/platformOverview"
         params = {
@@ -101,14 +106,29 @@ class TestScenePeopleTest(MyInit):
         assert res.status_code == 200
         assert res.json()['success'] == success
 
-    def test_flowPackageRemain(self):
+    def test_flowPackage_remain(self):
+        """获取精准流量包剩余"""
         url = self.baseUrl + "/api/base/pay/flowPackageRemain"
         res = requests.post(url=url, headers=self.headers)
         assert res.status_code == 200
         assert res.json()["status"] == 0
 
+    def test_flowPackage_judge(self):
+        """判断精装流量包剩余量是否充足"""
+        url = self.baseUrl + "/api/base/pay/flowPackageJudge"
+        params = {
+            "peopleNum": 10000,
+            "peopleName": getName("测试人群包")
+        }
+
+        res = requests.post(url=url, headers=self.headers,json=params)
+        print(res.json())
+        assert res.status_code == 200
+        assert res.json()["status"] == 0
+
     @pytest.mark.parametrize('value', generateSceneAndTradePeoplePack_data)
     def test_generateSceneAndTradePeoplePackage(self, value):
+        """生成人群包"""
         url = self.baseUrl + "/api/analysis/peoplePackage/getEstimateNumber"
         params = {
             "repeated": 0,
@@ -165,6 +185,7 @@ class TestScenePeopleTest(MyInit):
         assert res.json()['data']['overview']['memberCount'] == data_count
 
     def test_estimateCostByCount(self):
+        """获取短信预估花费"""
         url = self.baseUrl + "/api/market/plan/estimateCostByCount"
         params = {
             "materialId": 384,
@@ -172,11 +193,13 @@ class TestScenePeopleTest(MyInit):
         }
 
         res = requests.post(url=url, headers=self.headers, json=params)
+        print(res.json())
         assert res.status_code == 200
         assert res.json()["status"] == 0
 
     @pytest.mark.parametrize("value", oneKeyPut_data)
     def test_oneKeyPut(self, value):
+        """短信一键投放"""
         url = self.baseUrl + "/api/market/advertMerge/oneKeyPut"
         print(json.dumps(value, indent=4))
         params = {
@@ -212,6 +235,7 @@ class TestScenePeopleTest(MyInit):
 
     @pytest.mark.parametrize("value", oneKeyPut_ad)
     def test_oneKeyPut1(self, value):
+        """广告一键投放"""
         url = self.baseUrl + "/api/market/advertMerge/oneKeyPut"
         params = {
             "repeated": value["repeated"],
@@ -251,15 +275,65 @@ class TestScenePeopleTest(MyInit):
         elif value['putState'] == 1:
             assert str(package_id) in advert['launch_people']
 
-
-
-
     def test_relationshipOfCityAndProvince(self):
+        """获取省市关系"""
         url = self.baseUrl + "/api/heart/memberLabel/relationshipOfCityAndProvince"
         params = {
             "province": "福建"
 
         }
         res = requests.get(url=url, params=params, headers=self.headers)
+        assert res.status_code == 200
+        assert res.json()["status"] == 0
+
+    def test_get_popular_tags(self):
+        """获取热门标签"""
+        url = self.baseUrl + "/api/analysis/label/getPopularTags"
+        res = requests.post(url=url, headers=self.headers)
+        assert res.status_code == 200
+        assert res.json()["status"] == 0
+
+    def test_get_mombaby_tags(self):
+        """获取母婴标签"""
+        url = self.baseUrl + "/api/analysis/label/getCustomLabelSet?type=MOM_BABY"
+        res = requests.post(url=url, headers=self.headers)
+        assert res.status_code == 200
+        assert res.json()["status"] == 0
+
+    def test_label_addUserSearches(self):
+        """热门标签搜索次数加1"""
+        url = self.baseUrl + "/api/analysis/label/addUserSearches"
+        params = {
+            "searchText": "休闲食品 - 1"
+        }
+
+        res = requests.post(url=url, headers=self.headers, params=params)
+        print(res.json())
+        assert res.status_code == 200
+        assert res.json()["status"] == 0
+
+    def test_searchLevelLabel(self):
+        """根据关键词搜索品类"""
+        url = self.baseUrl + "/api/analysis/label/searchLevelLabel"
+        params = {
+            "name": "饼干"
+        }
+
+        res = requests.post(url=url, headers=self.headers, params=params)
+        print(res.json())
+        assert res.status_code == 200
+        assert res.json()["status"] == 0
+
+    def test_get_dictionary(self):
+        url = self.baseUrl + "/api/heart/member/getDictionary"
+        res = requests.post(url=url, headers=self.headers)
+        print(res.json())
+        assert res.status_code == 200
+
+    def test_get_cross_analysis_config(self):
+        """获取交叉分析配置"""
+        url = self.baseUrl + "/api/heart/member/getUserCrossAnalysisConfig"
+        res = requests.get(url=url, headers=self.headers)
+        print(res.json())
         assert res.status_code == 200
         assert res.json()["status"] == 0

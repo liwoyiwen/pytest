@@ -1,11 +1,12 @@
 import base64
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_v1_5 as Cipher_pkcs1_v1_5
-from APIs.sms import *
-from conf.config import Read_config
-import os
-
-
+import requests
+import pytest
+from conf.config import ReadConfig
+from py._xmlgen import html
+import time
+import random
 
 def pytest_addoption(parser):
     parser.addoption("--env", action="store",
@@ -20,7 +21,10 @@ def get_envs(request):
 
 
 def get_cipher(password):
-    url = 'http://test2.shulanchina.cn/api/base/check/key'
+    read_config = ReadConfig()
+    base_url = read_config.get_baseUrl()
+    url = base_url + '/api/base/check/key'
+
     headers = {'Content-Type': 'application/json'}
     res = requests.get(url=url, headers=headers)
     cookie = 'SESSION=' + res.cookies['SESSION']
@@ -35,9 +39,8 @@ def get_cipher(password):
 
 
 @pytest.fixture(scope="session", autouse=True)
-def login(get_envs):
-    os.environ['--env'] = get_envs
-    read_config = Read_config(get_envs)
+def login():
+    read_config = ReadConfig()
     username = read_config.get_conf("username")
     password = read_config.get_conf("password")
     base_url = read_config.get_baseUrl()
@@ -55,14 +58,54 @@ def login(get_envs):
 
 
 @pytest.fixture()
-def get_shortUrl(get_envs):
-    read_config = Read_config(get_envs)
+def get_shortUrl():
+    read_config = ReadConfig()
     base_url = read_config.get_baseUrl()
     url = base_url + '/api/market/plan/generateShortUrl'
-    headers=read_config.get_headers()
-    materialId=read_config.get_conf("materialId")
-    params={
-        "materialId": materialId
+    headers = read_config.get_headers()
+    material_id = read_config.get_conf("materialId")
+    params = {
+        "materialId": material_id
     }
-    res=requests.post(url=url,headers=headers,json=params)
+    res = requests.post(url=url, headers=headers, json=params)
     return res.json()['data']
+
+
+@pytest.mark.hookwrapper
+def pytest_runtest_makereport(item, call):
+    outcome = yield
+    report = outcome.get_result()
+    report.description = str(item.function.__doc__)
+
+
+@pytest.mark.optionalhook
+def pytest_html_results_table_header(cells):
+    cells.insert(1, html.th('Description'))
+    cells.insert(1, html.th('module'))
+    cells.pop(-1)
+
+
+@pytest.mark.optionalhook
+def pytest_html_results_table_row(report, cells):
+    cells.insert(1, html.td(report.description))
+    module_name = report.nodeid.encode('utf-8').decode("unicode_escape").split("::")[0]
+    cells.insert(1, html.td(module_name))
+
+@pytest.fixture(scope="session", autouse=True)
+def get_tencent_token():
+    params = {
+        "timestamp": int(time.time()),
+        "nonce": str(time.time()) + str(random.randint(0, 999999)),
+        "client_id": 1110527770,
+        "client_secret": "gjiPGP05WstMqsEB",
+        "grant_type": "refresh_token",
+        "authorization_code": "db0c73eeccb2bad7dd4c1aaf1c28f319",
+        "redirect_uri": "https://shulanchina.cn",
+        "refresh_token": "d76440d06cf38c4cec85bf67c7bbdd4a",
+    }
+    res = requests.get(params=params, url="https://api.e.qq.com/oauth/token")
+    print(res.json())
+    access_token = res.json()['data']['access_token']
+    read_config = ReadConfig()
+
+    read_config.set_conf("access_token", access_token)

@@ -1,5 +1,4 @@
 from elasticsearch import Elasticsearch
-from common.read_data import *
 from common.mysql_engine import *
 
 es = Elasticsearch(hosts="192.168.100.166", port=9200)
