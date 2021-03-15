@@ -38,5 +38,61 @@ class TestIndex(MyInit):
         assert res.status_code == 200
         assert res.json()['status'] == 0
 
+
+
+
+    def test_send_message(self):
+        url="https://oapi.dingtalk.com/robot/send?access_token=90e7b9510b2e05789c8ae9f6464b30c3babd22fba0fb53b55848b98e0ea066b2"
+        headers={
+            "Content-Type":"application/json;charset=utf-8"
+
+        }
+
+        message={
+            "msgtype":"text",
+            "text":{
+                "content":"test"+":hello"
+            },
+            "at":{
+                "atMobiles":[
+                    "18616753564"
+                ],
+                "isAtAll":0
+
+            }
+        }
+
+        res=requests.post(url=url,data=json.dumps(message),headers=headers)
+        print(res.json())
+
+
+
+    def test_send_link(self):
+        url = "https://oapi.dingtalk.com/robot/send?access_token=90e7b9510b2e05789c8ae9f6464b30c3babd22fba0fb53b55848b98e0ea066b2"
+        headers = {
+            "Content-Type": "application/json;charset=utf-8"
+
+        }
+
+        message = {
+            "msgtype": "link",
+            "link": {
+                "text": "test",
+                "title":"title",
+                "picurl":"http://www.baidu.cn",
+                "messageUrl":"http://www.baidu.cn"
+            },
+            "at": {
+                "atMobiles": [
+                    "18616753564"
+                ],
+                "isAtAll": 0
+
+            }
+        }
+
+        res = requests.post(url=url, data=json.dumps(message), headers=headers)
+        print(res.json())
+
 if __name__=='__main__':
-    pytest.main(['-s','test_index.py'])
+  ytest.main(['-s','test_index.py'])
